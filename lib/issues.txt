@@ -1,0 +1,20 @@
+1- tela de login não esta centralizada
+2- desacoplar o arquivo main tem funções e classes que poderiam estar
+em arquivos separados. Isso vai melhorar a organização e legibilidade do
+projeto
+3- ajustar a logica do rating dos livros
+4- se certificar que as snackbars de erro de login estao sendo
+mostradas corretamente: senha errada, sem internet, sem servidor
+5- Erro ao buscar livros: FormatException: Unexpected end of input (at character 1)
+esse erro acontece ao ficar um tempo na tela de detalhes
+6- dar uma olhada no metodo put do HttpClientService, esse token não pode causar
+erros se ele for vazio ou nulo?
+7- arrumar o interceptor que vai para tela de login em qualquer resposta que não seja http OK
+8- configurar o favorite da tela de carrinho
+9-arrumar a foto do livro na tela de carrinho
+
+10- implementar os loadings nas telas
+
+11- ajeitar o padding excessivo na tela checkout 3
+
+12- resolver os warnings

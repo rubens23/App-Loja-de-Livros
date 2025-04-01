@@ -1,0 +1,15 @@
+Usar um ambiente local (localhost)
+Você pode instalar o WordPress em seu próprio computador, criando um servidor local. Existem várias ferramentas que facilitam esse processo. Abaixo estão algumas opções populares:
+
+XAMPP (Windows, macOS, Linux): Um pacote que inclui Apache (servidor web), MySQL (banco de dados) e PHP (necessário para rodar o WordPress). Você pode baixar e configurar facilmente o WordPress em seu computador. Baixar XAMPP
+
+Local by Flywheel (Windows, macOS): Ferramenta muito amigável para desenvolver sites WordPress localmente, com uma interface fácil de usar. É uma das opções mais rápidas para criar um ambiente WordPress local. Baixar Local
+
+MAMP (macOS, Windows): Outra alternativa para configurar um servidor local com suporte ao WordPress. Baixar MAMP
+
+Como funciona:
+Instale uma dessas ferramentas.
+Baixe o WordPress.org (https://wordpress.org/download/) e extraia os arquivos no diretório do servidor local.
+Configure o banco de dados: A maioria dessas ferramentas tem um painel fácil para criar um banco de dados MySQL.
+Instale o WordPress acessando localhost/seusite no navegador, onde você configurará o site como faria com uma instalação normal.
+Use a API REST: Com o WordPress funcionando localmente, você pode acessar a API REST em um endereço como http://localhost/seusite/wp-json/wp/v2/posts.
