@@ -6,16 +6,16 @@ class CartItem {
   final String productId;
   final int quantity;
   final double price;
-  final int stockQnt;
   final Book book;
+  final String itemType;
 
   CartItem({
     required this.userId,
     required this.productId,
     required this.quantity,
     required this.price,
-    required this.stockQnt,
     required this.book,
+    required this.itemType,
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
@@ -24,8 +24,8 @@ class CartItem {
       productId: safeParse<String>(json['productId'], 'productId', 'CartItem'),
       quantity: safeParse<int>(json['quantity'], 'quantity', 'CartItem'),
       price: safeParse<double>(json['price'], 'price', 'CartItem'),
+      itemType: safeParse<String>(json['itemType'], 'itemType', 'CartItem'),
       book: json['bookResponse'] != null ? Book.fromJson(json['bookResponse']) : throw Exception("Erro: campo 'book' ausente"),
-      stockQnt: safeParse(json['stockQnt'], 'stockQnt', 'CartItem')
     );
   }
 
@@ -36,7 +36,7 @@ class CartItem {
       'quantity': quantity,
       'price': price,
       'bookResponse': book.toJson(), // Certifique-se de que a classe Book também tenha um toJson()
-      'stockQnt': stockQnt
+      'itemType': itemType
     };
   }
 }

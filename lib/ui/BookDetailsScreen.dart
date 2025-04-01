@@ -139,7 +139,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen>{
         widget.book.isAvailable?
         GestureDetector(
                     onTap: (){
-                      _adicionarLivroAoCarrinho(context, widget.book.id, widget.book.price, widget.book.stock);
+                      _adicionarLivroAoCarrinho(context, widget.book.id, widget.book.price);
                     },
                     child:Text(widget.book.isAvailable ? 'Adicionar ao Carrinho': 'Salvar na lista de desejos', style: TextStyle(fontFamily: 'Roboto', fontSize: 20,
                         fontWeight: FontWeight.bold, color: Colors.black, decoration: TextDecoration.underline
@@ -169,8 +169,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen>{
     );
   }
 
-  void _adicionarLivroAoCarrinho(BuildContext context, String id, double price, int stockQnt) async {
-    bool adicionouLivro = await cartRepository.addBookToCart(context, id, 1, price, stockQnt);
+  void _adicionarLivroAoCarrinho(BuildContext context, String id, double price) async {
+    bool adicionouLivro = await cartRepository.addBookToCart(context, id, 1, price);
     if (adicionouLivro) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Livro adicionado ao carrinho de compras!'),));

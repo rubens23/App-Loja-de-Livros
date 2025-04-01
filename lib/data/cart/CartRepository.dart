@@ -8,9 +8,9 @@ class CartRepository {
 
 
 
-  Future<bool> addBookToCart(BuildContext context, String bookId, int quantity, double price, int stockQnt) async {
+  Future<bool> addBookToCart(BuildContext context, String bookId, int quantity, double price) async {
     try {
-      return _apiService.saveBookInCart(context, bookId, quantity, price, stockQnt);
+      return _apiService.saveBookInCart(context, bookId, quantity, price);
 
     } catch (error) {
       print('Error adding book to cart $error');

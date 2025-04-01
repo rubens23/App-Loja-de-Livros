@@ -157,7 +157,7 @@ class ApiService{
 
 
   // metodo de adicionar livro ao carrinho
-  Future<bool> saveBookInCart(BuildContext context, String bookId, int quantity, double price, int stockQnt) async{
+  Future<bool> saveBookInCart(BuildContext context, String bookId, int quantity, double price) async{
     try{
       String? userId = await _getUserId();
 
@@ -171,7 +171,6 @@ class ApiService{
         'price': price,
         'userId': userId,
         'itemType': 'BOOK',
-        'stockQnt': stockQnt
       };
 
       final response = await _httpClientService.put(
@@ -238,7 +237,7 @@ class ApiService{
 
     }catch(e){
       print("erro makeNewOrder $e");
-      return Result.failure("Ocorreu um erro inesperado.");
+      return Result.failure("Ocorreu um erro inesperado ao gerar novo pedido.");
     }
   }
 
