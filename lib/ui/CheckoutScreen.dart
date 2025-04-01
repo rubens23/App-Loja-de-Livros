@@ -141,7 +141,6 @@ class _CheckoutScreenState extends State<CheckoutScreen>{
                       print("unavailable books ${_unavailableBooks}");
 
                       bool isUnavailable = _unavailableBooks.contains(cartItems[index].productId);
-                      theresBooksUnavailable = isUnavailable;
                       print("isUnavailable aqui no checkoutscreen $isUnavailable");
                       return ShoppingCartItem(
                           livro: cartItems[index].book,
@@ -255,16 +254,11 @@ class _CheckoutScreenState extends State<CheckoutScreen>{
         bookIds = _createBookIdsList(cartItems);
 
 
+
       });
 
+      _getUnavailableBooks();
 
-      //ou esse?
-      List<String>? unavailableBooks = await _booksRepository.getUnavailableBooksList(bookIds, context);
-
-
-      setState(() {
-        _unavailableBooks = unavailableBooks ?? []; // Atualiza _unavailableBooks e garante que não seja null
-      });
     }catch(e){
       print("Erro ao carregar o carrinho: $e");
 
@@ -279,6 +273,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>{
     setState(() {
       cartItems.removeAt(index);
     });
+    _getUnavailableBooks();
+
   }
 
   List<String>? _createBookIdsList(List<CartItem> items) {
@@ -291,6 +287,29 @@ class _CheckoutScreenState extends State<CheckoutScreen>{
     }
 
     return bookIds;
+  }
+
+  void _getUnavailableBooks() async {
+
+    try{
+      List<String>? unavailableBooks = await _booksRepository.getUnavailableBooksList(bookIds, context);
+
+
+      setState(() {
+        _unavailableBooks = unavailableBooks ?? []; // Atualiza _unavailableBooks e garante que não seja null
+        theresBooksUnavailable = _unavailableBooks.isNotEmpty;
+
+
+      });
+
+    }catch(e){
+      print("Erro ao obter livros indisponíveis: $e");
+
+    }
+
+
+
+
   }
 }
 
