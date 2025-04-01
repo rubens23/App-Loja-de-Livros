@@ -6,18 +6,15 @@ import '../payment/pix/PixPaymentResponse.dart';
 
 class OrderRequest{
   final Cart userCart;
-  final PaymentRequest payment;
   final Address addressDto;
-  final PixPaymentResponse pixResponse;
 
-  OrderRequest({required this.userCart, required this.payment, required this.addressDto, required this.pixResponse});
+
+  OrderRequest({required this.userCart, required this.addressDto});
 
   Map<String, dynamic> toJson() {
     return {
       'userCart': userCart,
-      'payment': payment,
       'addressDto': addressDto,
-      'pixResponse': pixResponse,
 
     };
   }

@@ -39,17 +39,13 @@ class PaymentRepository{
   }
 
   Future<Result<OrderResponse>> makeNewOrder(
-      PixPaymentResponse pixResponse,
       Cart userCart,
-      PaymentRequest payment,
       Address addressDto,
       BuildContext context) async{
     try{
       OrderRequest orderRequest = OrderRequest(
           userCart: userCart,
-          payment: payment,
-          addressDto: addressDto,
-      pixResponse: pixResponse);
+          addressDto: addressDto);
 
       return await _apiService.makeNewOrder(orderRequest, context);
 
@@ -59,5 +55,26 @@ class PaymentRepository{
       return Result.failure("Ocorreu um erro ao gerar o pedido.");
 
     }
+  }
+
+  Future<PixPaymentResponse?> getPaymentDetails(BuildContext context, String paymentId) async{
+    try{
+      PixPaymentResponse? response = await _apiService.getPixPaymentDetails(context, paymentId);
+      return response;
+
+    }catch(error){
+      print("error in payment repository $error");
+      return null;
+    }
+  }
+
+  Future<void> updateOrderWithPix(String orderId, PixPaymentResponse pixPaymentResponse, BuildContext context) async{
+    try{
+      await _apiService.updateOrderWithPix(orderId, pixPaymentResponse, context);
+
+    }catch(error){
+      print("error in payment repository updateOrderWithPix $error");
+    }
+
   }
 }

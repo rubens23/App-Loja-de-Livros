@@ -88,30 +88,46 @@ class _CheckoutScreenState2 extends State<CheckoutScreen2>{
       final cpf = _cpfController.text.trim();
       final valor = total;
       
-      final response = await _paymentRepository.payByPix(cpf, valor, context);
+      //final response = await _paymentRepository.payByPix(cpf, valor, context);
 
-      if(response != null){
-          // _exibirQRCode = true;
+
+
+          // //gerar o pedido
+          // PixPaymentResponse pixPaymentResponse = PixPaymentResponse(id: response.id, status: response.status, statusDetail: response.statusDetail, qrCode: response.qrCode,
+          //     qrCodeBase64: response.qrCodeBase64, ticketUrl: response.ticketUrl, vencimento: response.vencimento);
           //
-          // _qrCodeUrl = response.qrCodeBase64 ?? response.qrCode ?? '';
-          // _ticketUrl = response.ticketUrl;
+          // //se o pedido é por pix o pagamento ainda vai ser feito
+          // //não tem payment id pois o pagamento ainda não foi feito nesse ponto
+          // PaymentRequest paymentRequest = PaymentRequest(status: "pendente", paymentId: "", paymentMethod: "Pix");
 
-          //gerar o pedido
-          PixPaymentResponse pixPaymentResponse = PixPaymentResponse(id: response.id, status: response.status, statusDetail: response.statusDetail, qrCode: response.qrCode,
-              qrCodeBase64: response.qrCodeBase64, ticketUrl: response.ticketUrl);
 
-          //se o pedido é por pix o pagamento ainda vai ser feito
-          //não tem payment id pois o pagamento ainda não foi feito nesse ponto
-          PaymentRequest paymentRequest = PaymentRequest(status: "pendente", paymentId: "", paymentMethod: "Pix");
 
-          final orderResponse = await _paymentRepository.makeNewOrder(pixPaymentResponse,
+
+          final orderResponse = await _paymentRepository.makeNewOrder(
           widget.cart,
-          paymentRequest,
           widget.address,
           context);
 
+          if(orderResponse.data == null){
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Erro ao criar o pedido. Tente novamente."))
+            );
+            return;
+          }
 
-          if(orderResponse.data != null){
+
+          if(orderResponse.data!.orderStatus == "pending_payment"){
+
+            //gerar o pix
+            final pixPaymentResponse = await _paymentRepository.payByPix(cpf, valor, context);
+            //atualizar o pedido com o pix gerado
+            if(pixPaymentResponse == null){
+              ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Erro ao gerar o pagamento Pix. Tente novamente."))
+              );
+              return;
+            }
+            await _paymentRepository.updateOrderWithPix(orderResponse.data!.id, pixPaymentResponse, context);
 
             Navigator.push(
                 context,
@@ -131,11 +147,11 @@ class _CheckoutScreenState2 extends State<CheckoutScreen2>{
 
 
 
-      }else{
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erro ao processar pagamento. Tente novamente."))
-        );
-      }
+
+        //ScaffoldMessenger.of(context).showSnackBar(
+        //  SnackBar(content: Text("Erro ao processar pagamento. Tente novamente."))
+        //);
+
     }
   }
 

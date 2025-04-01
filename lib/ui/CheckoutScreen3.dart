@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:wordpress_book_app/data/payment/PaymentRepository.dart';
 import 'package:wordpress_book_app/ui/colors.dart';
 
 import '../data/order/OrderResponse.dart';
+import '../data/payment/pix/PixPaymentResponse.dart';
 import 'MyHomePage.dart';
 
 class CheckoutScreen3 extends StatefulWidget{
@@ -18,8 +20,17 @@ class CheckoutScreen3 extends StatefulWidget{
 }
 
 class _CheckoutScreen3State extends State<CheckoutScreen3>{
+  final paymentRepository = PaymentRepository();
+  PixPaymentResponse? _paymentDetails;
 
   String formaDePagamento = "Pix";
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    //_fetchPaymentDetails(widget.order.paymentId);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,12 +56,13 @@ class _CheckoutScreen3State extends State<CheckoutScreen3>{
                     child: Icon(Icons.check_circle, color: AppColors.darkerGreen, size: 88,),
                   ),
                   SizedBox(height: 10,),
-                  Text("Pedido realizado!", style: TextStyle(fontFamily: 'Roboto',
+                  Text(widget.order.orderStatus, style: TextStyle(fontFamily: 'Roboto',
                   fontWeight: FontWeight.bold,
                   fontSize: 22,
                   color: Colors.white),),
                   SizedBox(height: 10,),
-                  Text("24 de março de 2025 - 13:55", style: TextStyle(fontFamily: 'Roboto',
+                  //formato esperado "24 de março de 2025 - 13:55"
+                  Text(widget.order.createdAt.toString(), style: TextStyle(fontFamily: 'Roboto',
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                       color: Colors.white),),
@@ -67,7 +79,7 @@ class _CheckoutScreen3State extends State<CheckoutScreen3>{
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Padding(
+                    child: Padding(
                       padding: EdgeInsets.all(10),
                       child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +92,7 @@ class _CheckoutScreen3State extends State<CheckoutScreen3>{
                               fontSize: 18,
                               ),),
                         ),
-                        Text("Rua São Pedro da Silva, 45, Sao Jose, PR", style: TextStyle(fontFamily: 'Roboto',
+                        Text("${widget.order.address.street}, ${widget.order.address.city}, ${widget.order.address.state}, ${widget.order.address.country} - ${widget.order.address.postalCode}", style: TextStyle(fontFamily: 'Roboto',
                             fontWeight: FontWeight.normal,
                             fontSize: 14,
                             ),),
@@ -133,8 +145,9 @@ class _CheckoutScreen3State extends State<CheckoutScreen3>{
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,
                                         ),),
+                                        //formato vencimento: "25/03/2025 - 21:30"
 
-                                        Text("25/03/2025 - 21:30", style: TextStyle(fontFamily: 'Roboto',
+                                        Text(_paymentDetails?.vencimento.toString() ?? '', style: TextStyle(fontFamily: 'Roboto',
                                           fontWeight: FontWeight.normal,
                                           fontSize: 14,
                                         ),),
@@ -152,7 +165,7 @@ class _CheckoutScreen3State extends State<CheckoutScreen3>{
                                               fontWeight: FontWeight.normal,
                                               fontSize: 14,
                                             ),),
-                                            Text("000sadsadsads0adsa0d0sad0sad0sadsadsad", style: TextStyle(fontFamily: 'Roboto',
+                                            Text(_paymentDetails?.qrCode ?? '', style: TextStyle(fontFamily: 'Roboto',
                                               fontWeight: FontWeight.normal,
                                               fontSize: 14,
                                               color: AppColors.primaryTextColor
@@ -283,6 +296,25 @@ class _CheckoutScreen3State extends State<CheckoutScreen3>{
         ),
       ),
     );
+  }
+
+  void _fetchPaymentDetails(String paymentId) async{
+    try{
+      final paymentDetails = await paymentRepository.getPaymentDetails(
+          context,
+      paymentId,
+      );
+
+
+      //atualizar o estado com os dados de pagamento
+      setState(() {
+        _paymentDetails = paymentDetails;
+
+      });
+    }catch(e){
+      print("Erro ao buscar detalhes do pagamento: $e");
+
+    }
   }
 
 }

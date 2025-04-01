@@ -453,6 +453,42 @@ class ApiService{
     }
   }
 
+  Future<PixPaymentResponse?>getPixPaymentDetails(BuildContext context, String paymentId) async{
+    try{
+      final response = await _httpClientService.get(
+        context,
+        '/getPixPayment/$paymentId',
+      );
+
+      if(response.statusCode == 200){
+        final Map<String, dynamic> responseData = json.decode(response.body);
+
+        return PixPaymentResponse.fromJson(responseData);
+      }else{
+        print("Erro ao pegar os detalhes do pagamento pix: ${response.statusCode} - ${response.body}");
+        return null;
+      }
+
+    }catch(e){
+      print("Erro ao pegar detalhes do pagamento pix: $e");
+      return null;
+    }
+
+
+  }
+
+  Future<void> updateOrderWithPix(String orderId, PixPaymentResponse pixPaymentResponse, BuildContext context) async {
+    try{
+      await _httpClientService.put(
+          context,
+          '/orders/$orderId/payment',
+          body: jsonEncode(pixPaymentResponse.toJson())
+      );
+    }catch(e){
+      print("Erro ao fazer update do pedido com pix");
+    }
+  }
+
 
 
 

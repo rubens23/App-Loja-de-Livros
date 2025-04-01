@@ -13,10 +13,10 @@ class OrderResponse{
   final String orderStatus;
   final int? updatedAt;
   final int createdAt;
-  final String paymentId;
+  final List<String> paymentIds;
   final String paymentMethod;
 
-  OrderResponse({required this.id, required this.userId, required this.items, required this.totalAmount, required this.address, required this.orderStatus, required this.updatedAt, required this.createdAt, required this.paymentId, required this.paymentMethod});
+  OrderResponse({required this.id, required this.userId, required this.items, required this.totalAmount, required this.address, required this.orderStatus, required this.updatedAt, required this.createdAt, required this.paymentIds, required this.paymentMethod});
 
   factory OrderResponse.fromJson(Map<String, dynamic> json){
     List<OrderItemResponse> items = [];
@@ -27,6 +27,11 @@ class OrderResponse{
       items.add(OrderItemResponse.fromJson(itemJson));
     }
 
+    // Aqui, vamos extrair a lista de paymentIds diretamente do JSON
+    List<String> paymentIds = json['paymentIds'] != null
+        ? List<String>.from(json['paymentIds'])
+        : [];
+
     return OrderResponse(id: safeParse(json['id'], 'id', 'OrderResponse'),
         userId: safeParse(json['userId'], 'userId', 'OrderResponse'),
         items: items,
@@ -35,7 +40,7 @@ class OrderResponse{
         orderStatus: safeParse(json['orderStatus'], 'orderStatus', 'OrderResponse'),
         updatedAt: safeParse(json['updatedAt'], 'updatedAt', 'OrderResponse'),
         createdAt: safeParse(json['createdAt'], 'createdAt', 'OrderResponse'),
-        paymentId: safeParse(json['paymentId'], 'paymentId', 'OrderResponse'),
+        paymentIds: paymentIds,
         paymentMethod: safeParse(json['paymentMethod'], 'paymentMethod', 'OrderResponse'));
   }
 
