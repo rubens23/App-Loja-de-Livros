@@ -16,7 +16,6 @@ class HttpClientService{
   Future<http.Response> get(BuildContext context, String endpoint) async{
     final token = await getToken();
 
-    print("Token enviado: $token");
 
     final response = await http.get(
       Uri.parse('$_baseUrl$endpoint'),
@@ -40,7 +39,6 @@ class HttpClientService{
 
     final token = await getToken();
 
-    print("Token enviado: $token");
 
     String userId ='';
 

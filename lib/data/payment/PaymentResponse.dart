@@ -9,7 +9,7 @@ class PaymentResponse {
   final String status; // Ex.: "pending", "completed", "failed"
   final String? transactionId; // ID fornecido pelo gateway de pagamento
   final int createdAt;
-  final Map<String, dynamic> details;
+  final Map<String, String> details;
   final String? pixPaymentId;
   final String? creditCardPaymentId;
 
@@ -37,7 +37,7 @@ class PaymentResponse {
       status: safeParse(json['status'], 'status', 'PaymentResponse'),
       transactionId: safeParse(json['transactionId'], 'transactionId', 'PaymentResponse'),
       createdAt: safeParse(json['createdAt'], 'createdAt', 'PaymentResponse'),
-      details: json['details'] != null ? Map<String, dynamic>.from(json['details']) : {},
+      details: json['details'] != null ? Map<String, String>.from(json['details']) : {},
       pixPaymentId: safeParse(json['pixPaymentId'], 'pixPaymentId', 'PaymentResponse'),
       creditCardPaymentId: safeParse(json['creditCardPaymentId'], 'creditCardPaymentId', 'PaymentResponse'),
     );

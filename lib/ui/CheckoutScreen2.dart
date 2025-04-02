@@ -97,14 +97,23 @@ class _CheckoutScreenState2 extends State<CheckoutScreen2>{
       if(order == null) return;
 
       final pixResponse = await _gerarPix(order);
-      if(pixResponse == null) return;
+      if(pixResponse == null) {
+        _mostrarErro("Erro ao gerar pagamento Pix. Tente novamente.");
+        return;
+      }
 
-      final paymentId = await _registrarPagamentoPix(order, pixResponse);
-      if(paymentId == null) return;
+        final paymentId = await _registrarPagamentoPix(order, pixResponse);
+        if(paymentId == null) {
+          print("payment id é null");
+          _mostrarErro("Erro ao registrar pagamento. Tente novamente.");
 
-      await _atualizarPedidoComPix(order.id, paymentId);
+          return;
+        }
 
-      _irParaTelaDeConfirmacao(order);
+        await _atualizarPedidoComPix(order.id, paymentId);
+
+        _irParaTelaDeConfirmacao(order);
+
     }else if(_metodoPagamento == "Cartao credito"){
       //implementar depois
     }else{
@@ -156,11 +165,16 @@ class _CheckoutScreenState2 extends State<CheckoutScreen2>{
 
     );
 
+    print("pix payment id  $pixPaymentId");
+
+
     if(pixPaymentId == null){
       // Atualizar o pedido para refletir o erro de pagamento
       await _orderRepository.updateOrderStatus(order.id, {'orderStatus': 'payment_failed'}, context);
       return null;
     }
+
+    print("to aqui prestes a chamar create payment");
 
 
     final paymentId = await _paymentRepository.createPayment(
@@ -177,6 +191,8 @@ class _CheckoutScreenState2 extends State<CheckoutScreen2>{
             creditCardPaymentId: null),
         context
     );
+
+    print("payment id: $paymentId");
 
     return paymentId;
   }

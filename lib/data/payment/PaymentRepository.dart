@@ -82,8 +82,9 @@ class PaymentRepository{
 
   Future<String?> createPixPayment(CreatePixPaymentRequest createPixPaymentRequest, BuildContext context)async {
     try{
-      await _apiService.createPixPayment(createPixPaymentRequest, context);
-
+      final response = await _apiService.createPixPayment(createPixPaymentRequest, context);
+      print("recebi a resposta aqui no repository $response");
+      return response;
     }catch(error){
       print("error in payment repository create pix payment $error");
       return null;
@@ -92,6 +93,7 @@ class PaymentRepository{
 
   Future<String?> createPayment(PaymentResponse paymentResponse, BuildContext context) async{
     try{
+      print("to aqui em create payment");
       return await _apiService.createPayment(paymentResponse, context);
     }catch(error){
       print("Erro ao criar pagamento no repositorio: $error");

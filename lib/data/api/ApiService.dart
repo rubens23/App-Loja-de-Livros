@@ -112,7 +112,6 @@ class ApiService{
           '/getUserById/$userId');
 
       if(response.statusCode == 200){
-        print("teste user ${response.body}");
 
         final Map<String, dynamic> user = jsonDecode(response.body);
 
@@ -495,7 +494,7 @@ class ApiService{
     try{
       await _httpClientService.put(
       context,
-        'orders/$orderId/updateOrderStatus',
+        '/orders/$orderId/updateOrderStatus',
         body: jsonEncode(statusMap)
       );
     }catch(e){
@@ -513,6 +512,7 @@ class ApiService{
       if(response.statusCode == 201){
         //pixPayment foi criado
         //receber a stringId do pix payment
+        print("criei o pagamento por pix ${response.body}");
         final responseData = json.decode(response.body);
         return responseData['pixPaymentId'].toString();
       }else{
@@ -532,12 +532,13 @@ class ApiService{
     try{
       final response = await _httpClientService.post(
           context,
-          'payment/createPayment',
+          '/payment/createPayment',
           jsonEncode(paymentResponse.toJson()));
 
       if(response.statusCode == 201){
         //Payment foi criado
         //receber a stringId do payment
+        print("payment id foi criado ${response.body}");
         final responseData = json.decode(response.body);
         return responseData['paymentId'].toString();
       }else{
