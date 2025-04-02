@@ -5,11 +5,13 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:wordpress_book_app/auth/HttpClientService.dart';
 import 'package:wordpress_book_app/data/book/Book.dart';
 import 'package:wordpress_book_app/data/order/OrderRequest.dart';
+import 'package:wordpress_book_app/data/payment/PaymentResponse.dart';
 import 'package:wordpress_book_app/data/payment/pix/PixPaymentRequest.dart';
 import 'package:wordpress_book_app/data/payment/pix/PixPaymentResponse.dart';
 
 import '../cart/Cart.dart';
 import '../order/OrderResponse.dart';
+import '../payment/pix/CreatePixPaymentRequest.dart';
 import '../user/User.dart';
 import '../book/Genero.dart';
 import 'package:http/http.dart' as http;
@@ -477,17 +479,81 @@ class ApiService{
 
   }
 
-  Future<void> updateOrderWithPix(String orderId, PixPaymentResponse pixPaymentResponse, BuildContext context) async {
+  Future<void> updateOrderWithPaymentId(String orderId, String paymentId, BuildContext context) async {
     try{
       await _httpClientService.put(
           context,
           '/orders/$orderId/payment',
-          body: jsonEncode(pixPaymentResponse.toJson())
+          body: jsonEncode({"paymentId": paymentId})
       );
     }catch(e){
-      print("Erro ao fazer update do pedido com pix");
+      print("Erro ao fazer update do pedido com o paymentid");
     }
   }
+
+  Future<void> updateOrderStatus(String orderId, Map<String, String> statusMap, BuildContext context) async{
+    try{
+      await _httpClientService.put(
+      context,
+        'orders/$orderId/updateOrderStatus',
+        body: jsonEncode(statusMap)
+      );
+    }catch(e){
+      print("Erro ao fazer update do status do pedido");
+    }
+  }
+
+  Future<String?> createPixPayment(CreatePixPaymentRequest createPixPaymentRequest, BuildContext context) async{
+    try{
+      final response = await _httpClientService.post(
+          context,
+          '/payment/createPixPayment',
+          json.encode(createPixPaymentRequest.toJson()));
+
+      if(response.statusCode == 201){
+        //pixPayment foi criado
+        //receber a stringId do pix payment
+        final responseData = json.decode(response.body);
+        return responseData['pixPaymentId'].toString();
+      }else{
+        print("Erro ao criar o pix payment: ${response.statusCode} - ${response.body}");
+        return null;
+      }
+
+    }catch(e){
+      print("Erro ao criar pix payment na apiService: $e");
+      return null;
+
+
+    }
+  }
+
+  Future<String?> createPayment(PaymentResponse paymentResponse, BuildContext context) async{
+    try{
+      final response = await _httpClientService.post(
+          context,
+          'payment/createPayment',
+          jsonEncode(paymentResponse.toJson()));
+
+      if(response.statusCode == 201){
+        //Payment foi criado
+        //receber a stringId do payment
+        final responseData = json.decode(response.body);
+        return responseData['paymentId'].toString();
+      }else{
+        print("Erro ao criar o pix payment: ${response.statusCode} - ${response.body}");
+        return null;
+      }
+
+
+
+    }catch(e){
+      print("Erro ao criar pagamento na apiService: $e");
+      return null;
+    }
+  }
+
+
 
 
 

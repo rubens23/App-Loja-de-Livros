@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:wordpress_book_app/data/api/ApiService.dart';
 import 'package:wordpress_book_app/data/order/OrderRequest.dart';
 import 'package:wordpress_book_app/data/order/OrderResponse.dart';
+import 'package:wordpress_book_app/data/payment/PaymentResponse.dart';
+import 'package:wordpress_book_app/data/payment/pix/CreatePixPaymentRequest.dart';
 import 'package:wordpress_book_app/data/payment/pix/PixPaymentRequest.dart';
 import 'package:wordpress_book_app/data/payment/pix/PixPaymentResponse.dart';
 
@@ -68,13 +70,32 @@ class PaymentRepository{
     }
   }
 
-  Future<void> updateOrderWithPix(String orderId, PixPaymentResponse pixPaymentResponse, BuildContext context) async{
+  Future<void> updateOrderWithPaymentId(String orderId, String paymentId, BuildContext context) async{
     try{
-      await _apiService.updateOrderWithPix(orderId, pixPaymentResponse, context);
+      await _apiService.updateOrderWithPaymentId(orderId, paymentId, context);
 
     }catch(error){
       print("error in payment repository updateOrderWithPix $error");
     }
 
+  }
+
+  Future<String?> createPixPayment(CreatePixPaymentRequest createPixPaymentRequest, BuildContext context)async {
+    try{
+      await _apiService.createPixPayment(createPixPaymentRequest, context);
+
+    }catch(error){
+      print("error in payment repository create pix payment $error");
+      return null;
+    }
+  }
+
+  Future<String?> createPayment(PaymentResponse paymentResponse, BuildContext context) async{
+    try{
+      return await _apiService.createPayment(paymentResponse, context);
+    }catch(error){
+      print("Erro ao criar pagamento no repositorio: $error");
+      return null;
+    }
   }
 }

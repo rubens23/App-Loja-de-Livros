@@ -3,13 +3,17 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wordpress_book_app/data/order/OrderRepository.dart';
 import 'package:wordpress_book_app/data/payment/PaymentRepository.dart';
 import 'package:wordpress_book_app/data/payment/PaymentRequest.dart';
+import 'package:wordpress_book_app/data/payment/PaymentResponse.dart';
+import 'package:wordpress_book_app/data/payment/pix/CreatePixPaymentRequest.dart';
 import 'package:wordpress_book_app/data/payment/pix/PixPaymentRequest.dart';
 import 'package:wordpress_book_app/data/payment/pix/PixPaymentResponse.dart';
 import 'package:wordpress_book_app/data/user/Address.dart';
 
 import '../data/cart/Cart.dart';
+import '../data/order/OrderResponse.dart';
 import 'CheckoutScreen3.dart';
 import 'colors.dart';
 
@@ -41,6 +45,9 @@ class _CheckoutScreenState2 extends State<CheckoutScreen2>{
 
   // Instância do PaymentRepository
   final PaymentRepository _paymentRepository = PaymentRepository();
+
+  // Instancia do order repository
+  final OrderRepository _orderRepository = OrderRepository();
 
 
 
@@ -83,77 +90,118 @@ class _CheckoutScreenState2 extends State<CheckoutScreen2>{
   }
 
 
+
   void _finalizarPagamento() async{
     if(_metodoPagamento == "Pix"){
-      final cpf = _cpfController.text.trim();
-      final valor = total;
-      
-      //final response = await _paymentRepository.payByPix(cpf, valor, context);
+      final order = await _criarPedido();
+      if(order == null) return;
 
+      final pixResponse = await _gerarPix(order);
+      if(pixResponse == null) return;
 
+      final paymentId = await _registrarPagamentoPix(order, pixResponse);
+      if(paymentId == null) return;
 
-          // //gerar o pedido
-          // PixPaymentResponse pixPaymentResponse = PixPaymentResponse(id: response.id, status: response.status, statusDetail: response.statusDetail, qrCode: response.qrCode,
-          //     qrCodeBase64: response.qrCodeBase64, ticketUrl: response.ticketUrl, vencimento: response.vencimento);
-          //
-          // //se o pedido é por pix o pagamento ainda vai ser feito
-          // //não tem payment id pois o pagamento ainda não foi feito nesse ponto
-          // PaymentRequest paymentRequest = PaymentRequest(status: "pendente", paymentId: "", paymentMethod: "Pix");
+      await _atualizarPedidoComPix(order.id, paymentId);
 
-
-
-
-          final orderResponse = await _paymentRepository.makeNewOrder(
-          widget.cart,
-          widget.address,
-          context);
-
-          if(orderResponse.data == null){
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Erro ao criar o pedido. Tente novamente."))
-            );
-            return;
-          }
-
-
-          if(orderResponse.data!.orderStatus == "pending_payment"){
-
-            //gerar o pix
-            final pixPaymentResponse = await _paymentRepository.payByPix(cpf, valor, context);
-            //atualizar o pedido com o pix gerado
-            if(pixPaymentResponse == null){
-              ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Erro ao gerar o pagamento Pix. Tente novamente."))
-              );
-              return;
-            }
-            await _paymentRepository.updateOrderWithPix(orderResponse.data!.id, pixPaymentResponse, context);
-
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CheckoutScreen3(order: orderResponse.data!,),
-                )
-            );
-
-          }else{
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(orderResponse.error!))
-            );
-
-          }
-
-
-
-
-
-
-        //ScaffoldMessenger.of(context).showSnackBar(
-        //  SnackBar(content: Text("Erro ao processar pagamento. Tente novamente."))
-        //);
-
+      _irParaTelaDeConfirmacao(order);
+    }else if(_metodoPagamento == "Cartao credito"){
+      //implementar depois
+    }else{
+      //forma de pagamento desconhecida
     }
   }
+
+  /// Cria o pedido no servidor
+  Future<OrderResponse?> _criarPedido() async {
+    final response = await _paymentRepository.makeNewOrder(widget.cart, widget.address, context);
+    if (response.data == null) {
+      _mostrarErro("Erro ao criar o pedido. Tente novamente.");
+      return null;
+    }
+    return response.data;
+  }
+
+  /// Gera o pagamento via Pix
+  Future<PixPaymentResponse?> _gerarPix(OrderResponse order) async {
+    if (order.orderStatus != "pending_payment") {
+      return null;
+    }
+
+    final cpf = _cpfController.text.trim();
+    final valor = total;
+
+    final pixResponse = await _paymentRepository.payByPix(cpf, valor, context);
+    if (pixResponse == null) {
+      _mostrarErro("Erro ao gerar o pagamento Pix. Tente novamente.");
+      return null;
+    }
+    return pixResponse;
+  }
+
+  /// Registra o pagamento no banco de dados
+  Future<String?> _registrarPagamentoPix(OrderResponse order, PixPaymentResponse pixResponse) async {
+
+
+    final pixPaymentId = await _paymentRepository.createPixPayment(
+      CreatePixPaymentRequest(orderId: order.id, pixPaymentResponse:
+      PixPaymentResponse(id: 0, // esse ID deve ser gerado pelo backend
+          status: pixResponse.status,
+          statusDetail: pixResponse.statusDetail,
+          qrCode: pixResponse.qrCode,
+          qrCodeBase64: pixResponse.qrCodeBase64,
+          ticketUrl: pixResponse.ticketUrl,
+          vencimento: pixResponse.vencimento)),
+      context
+
+    );
+
+    if(pixPaymentId == null){
+      // Atualizar o pedido para refletir o erro de pagamento
+      await _orderRepository.updateOrderStatus(order.id, {'orderStatus': 'payment_failed'}, context);
+      return null;
+    }
+
+
+    final paymentId = await _paymentRepository.createPayment(
+        PaymentResponse(id: "", // O ID deve ser gerado pelo backend, então pode ser vazio aqui
+            orderId: order.id,
+            userId: order.userId,
+            amount: order.totalAmount,
+            paymentMethod: "Pix",
+            status: "pending_payment",
+            transactionId: pixResponse.id.toString(),
+            createdAt: DateTime.now().millisecondsSinceEpoch,
+            details: {},
+            pixPaymentId: pixPaymentId,
+            creditCardPaymentId: null),
+        context
+    );
+
+    return paymentId;
+  }
+
+  /// Atualiza o pedido no banco com o pagamento Pix gerado
+  Future<void> _atualizarPedidoComPix(String orderId, String paymentId) async {
+    await _paymentRepository.updateOrderWithPaymentId(orderId, paymentId, context);
+  }
+
+  /// Navega para a tela de checkout
+  void _irParaTelaDeConfirmacao(OrderResponse order) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CheckoutScreen3(order: order),
+      ),
+    );
+  }
+
+  /// Exibe um erro usando Snackbar
+  void _mostrarErro(String mensagem) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensagem)));
+  }
+
+
 
   Widget _buildResumoCompra(){
     return   Card(
